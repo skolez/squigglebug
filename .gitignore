@@ -1,0 +1,21 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Analytics — web/analytics.js is committed as a safe no-op stub (GA ID = G-XXXXXXXXXX).
+# If you add your real Measurement ID locally, run:
+#   git update-index --skip-worktree web/analytics.js
+# to tell git to stop tracking local changes to that file.
+
+# Future build artifacts (Capacitor / npm)
+node_modules/
+dist/
+.capacitor/
+
