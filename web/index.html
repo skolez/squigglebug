@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Squigglebug">
+  <meta name="description" content="A magical drawing app for babies and toddlers">
+  <meta name="theme-color" content="#fce4ec">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://www.googletagmanager.com;
+    connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net;
+    img-src 'self' data: https://www.googletagmanager.com https://www.google-analytics.com;
+    style-src 'self';
+  ">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <title>Squigglebug</title>
+
+  <!-- Version — also loaded by sw.js via importScripts; bump to bust the SW cache -->
+  <script src="version.js" defer></script>
+
+  <!--
+    Analytics are optional and disabled by default.
+    See analytics.js — replace G-XXXXXXXXXX with your own GA4 Measurement ID to enable.
+  -->
+  <script src="analytics.js" defer></script>
+
+  <!--
+    app.js is an ES module: strict mode by default, no global leaks, Capacitor-ready.
+    type="module" is implicitly deferred, so version.js and analytics.js (also deferred)
+    will execute first in document order.
+  -->
+  <script src="app.js" type="module"></script>
+</head>
+<body>
+  <div id="bg"></div>
+  <canvas id="trail"></canvas>
+  <canvas id="sparkle"></canvas>
+</body>
+</html>
+
