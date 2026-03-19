@@ -1,0 +1,60 @@
+name: Android — Build (CI)
+
+# Runs on every push to a non-main branch and on pull requests.
+# Builds a debug AAB (no signing secrets needed) and uploads it as an artifact
+# so you can download and sideload it to test before merging.
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Source ───────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Toolchain ────────────────────────────────────────────────────────────
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # ── Web → Android sync ───────────────────────────────────────────────────
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Sync web assets into Android project
+        run: npx cap sync android
+
+      # ── Build ────────────────────────────────────────────────────────────────
+      # bundleDebug requires no keystore — perfect for CI verification.
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build debug AAB
+        working-directory: android
+        run: ./gradlew bundleDebug --no-daemon
+
+      # ── Artifact ─────────────────────────────────────────────────────────────
+      # Download from the Actions run page → "squigglebug-debug-aab"
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: squigglebug-debug-aab
+          path: android/app/build/outputs/bundle/debug/app-debug.aab
+          retention-days: 14
+
