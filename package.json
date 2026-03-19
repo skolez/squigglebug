@@ -1,0 +1,27 @@
+{
+  "name": "squigglebug",
+  "version": "1.0.0",
+  "description": "A magical drawing app for babies and toddlers. Touch the screen, make colorful trails, shake to clear. That's it.",
+  "main": "index.js",
+  "scripts": {
+    "sync": "cap sync",
+    "android": "cap open android",
+    "build:android": "cap sync android"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skolez/squigglebug.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/skolez/squigglebug/issues"
+  },
+  "homepage": "https://github.com/skolez/squigglebug#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/cli": "^8.2.0",
+    "@capacitor/core": "^8.2.0"
+  }
+}
