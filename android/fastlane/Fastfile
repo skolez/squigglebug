@@ -7,6 +7,11 @@ platform :android do
   # Called by the 'deploy' lane, or run standalone for a local build check.
   desc "Build a signed release AAB"
   lane :build do
+    # VERSION_NAME comes from the git tag (e.g. v1.2.3 → "1.2.3")
+    # VERSION_CODE comes from the GitHub Actions run number (always increasing)
+    version_name = ENV["VERSION_NAME"] || "1.0.0"
+    version_code = ENV["VERSION_CODE"] || "1"
+
     gradle(
       project_dir: ".",
       task:        "bundle",
@@ -16,6 +21,8 @@ platform :android do
         "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
         "android.injected.signing.key.alias"      => ENV["KEY_ALIAS"],
         "android.injected.signing.key.password"   => ENV["KEY_PASSWORD"],
+        "android.injected.version.code"           => version_code,
+        "android.injected.version.name"           => version_name,
       }
     )
   end
