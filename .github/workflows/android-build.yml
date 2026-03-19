@@ -1,15 +1,11 @@
 name: Android — Build (CI)
 
-# Runs on every push to a non-main branch and on pull requests.
+# Runs on every push (including main after a merge) and on pull requests.
 # Builds a debug AAB (no signing secrets needed) and uploads it as an artifact
-# so you can download and sideload it to test before merging.
+# so you can download and sideload it to verify the build at any time.
 on:
   push:
-    branches-ignore:
-      - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   build:
@@ -45,16 +41,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x android/gradlew
 
-      - name: Build debug AAB
+      - name: Build debug APK
         working-directory: android
-        run: ./gradlew bundleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon
 
       # ── Artifact ─────────────────────────────────────────────────────────────
-      # Download from the Actions run page → "squigglebug-debug-aab"
-      - name: Upload AAB artifact
+      # Download from the Actions run page → "squigglebug-debug-apk"
+      # Install on Android: Settings → Allow unknown sources → open the APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: squigglebug-debug-aab
-          path: android/app/build/outputs/bundle/debug/app-debug.aab
+          name: squigglebug-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 14
 
