@@ -14,8 +14,19 @@ desktop.ini
 #   git update-index --skip-worktree web/analytics.js
 # to tell git to stop tracking local changes to that file.
 
-# Future build artifacts (Capacitor / npm)
+# Signing — NEVER commit keystores or service account keys
+*.jks
+*.keystore
+play-store-key.json
+
+# Capacitor / npm build artifacts
 node_modules/
 dist/
 .capacitor/
+
+# Fastlane
+android/fastlane/report.xml
+android/fastlane/Preview.html
+android/fastlane/screenshots/
+android/fastlane/test_output/
 

@@ -1,0 +1,79 @@
+name: Android — Build & Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'          # triggers on v1.0.0, v1.2.3, etc.
+  workflow_dispatch:  # manual trigger from Actions tab
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Source ───────────────────────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Toolchain ────────────────────────────────────────────────────────────
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true   # runs `bundle install` automatically
+          working-directory: android
+
+      # ── Version ──────────────────────────────────────────────────────────────
+      # Strip the leading 'v' from the tag: v1.2.3 → 1.2.3
+      # VERSION_CODE uses the Actions run number — it always increases.
+      - name: Set version env vars
+        run: |
+          echo "VERSION_NAME=${GITHUB_REF_NAME#v}" >> $GITHUB_ENV
+          echo "VERSION_CODE=${{ github.run_number }}" >> $GITHUB_ENV
+
+      # ── Web → Android sync ───────────────────────────────────────────────────
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Sync web assets into Android project
+        run: npx cap sync android
+
+      # ── Signing keystore ─────────────────────────────────────────────────────
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/keystore.jks
+
+      # ── Fastlane ─────────────────────────────────────────────────────────────
+      - name: Deploy to Play Store (internal track)
+        working-directory: android
+        env:
+          KEYSTORE_PATH:      ${{ github.workspace }}/android/keystore.jks
+          KEYSTORE_PASSWORD:  ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS:          ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD:       ${{ secrets.KEY_PASSWORD }}
+          PLAY_STORE_JSON_KEY_PATH: ${{ github.workspace }}/play-store-key.json
+          VERSION_NAME:       ${{ env.VERSION_NAME }}
+          VERSION_CODE:       ${{ env.VERSION_CODE }}
+        run: |
+          echo '${{ secrets.PLAY_STORE_JSON_KEY }}' > ${{ github.workspace }}/play-store-key.json
+          bundle exec fastlane android deploy
+
+      # ── Cleanup ──────────────────────────────────────────────────────────────
+      - name: Remove keystore and service account key
+        if: always()
+        run: |
+          rm -f android/keystore.jks
+          rm -f play-store-key.json
+
