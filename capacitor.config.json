@@ -1,5 +1,14 @@
 {
   "appId": "com.squigglebug.app",
   "appName": "Squigglebug",
-  "webDir": "web"
+  "webDir": "web",
+  "android": {
+    "backgroundColor": "#fce4ec"
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "LIGHT",
+      "backgroundColor": "#fce4ec"
+    }
+  }
 }

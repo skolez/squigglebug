@@ -14,7 +14,6 @@ const ASSETS = [
   `${BASE}version.js`,
   `${BASE}assets/icon-192.png`,
   `${BASE}assets/icon-512.png`,
-  // analytics.js is intentionally excluded — it's optional and deployment-specific
 ];
 
 // Install — cache all core assets
