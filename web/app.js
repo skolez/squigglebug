@@ -3,11 +3,6 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js'));
 }
 
-// ── Analytics helper (safe no-op if analytics.js is not configured) ───────────
-function track(event, params) {
-  if (typeof window.gtag === 'function') window.gtag('event', event, params);
-}
-
 // ── Canvas setup ──────────────────────────────────────────────────────────────
 const trailCanvas   = document.getElementById('trail');
 const sparkleCanvas = document.getElementById('sparkle');
@@ -30,46 +25,6 @@ let hue = 0;
 const fingers  = {};
 const segments = [];
 const sparkles = [];
-
-// ── Engagement tracking ───────────────────────────────────────────────────────
-let sessionStart   = Date.now();
-let strokeCount    = 0;
-let totalDrawMs    = 0;
-let drawStart      = null;
-let clearCount     = 0;
-let sessionEndFired = false; // guard against visibilitychange + pagehide both firing
-
-function resetSession() {
-  sessionStart    = Date.now();
-  strokeCount     = 0;
-  totalDrawMs     = 0;
-  clearCount      = 0;
-  sessionEndFired = false;
-}
-
-function onSessionEnd() {
-  if (sessionEndFired) return;
-  sessionEndFired = true;
-  if (drawStart) { totalDrawMs += Date.now() - drawStart; drawStart = null; }
-  track('session_end', {
-    session_duration_sec: Math.round((Date.now() - sessionStart) / 1000),
-    draw_time_sec:        Math.round(totalDrawMs / 1000),
-    stroke_count:         strokeCount,
-    clear_count:          clearCount
-  });
-}
-
-// visibilitychange: fires when user switches tabs or backgrounds the app
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    onSessionEnd();
-  } else {
-    resetSession(); // user returned — start fresh tracking
-  }
-});
-
-// pagehide: more reliable than visibilitychange on iOS Safari for true unloads
-window.addEventListener('pagehide', onSessionEnd);
 
 // ── Resize ────────────────────────────────────────────────────────────────────
 function resize() {
@@ -180,8 +135,6 @@ function speedToWidth(dist) {
 }
 
 function startFinger(id, x, y) {
-  if (!Object.keys(fingers).length && !drawStart) drawStart = Date.now();
-  strokeCount++;
   fingers[id] = { pts: [{ x, y }], lastX: x, lastY: y, w: MAX_WIDTH };
   spawnSparkles(x, y, hue);
   segments.push({ isDot: true, x1: x, y1: y, w: MAX_WIDTH, hue, t: Date.now() });
@@ -213,10 +166,6 @@ function moveFinger(id, x, y) {
 
 function endFinger(id) {
   delete fingers[id];
-  if (!Object.keys(fingers).length && drawStart) {
-    totalDrawMs += Date.now() - drawStart;
-    drawStart = null;
-  }
 }
 
 // ── Main loop ─────────────────────────────────────────────────────────────────
@@ -224,7 +173,7 @@ function loop() { redrawTrails(); redrawSparkles(); updateBg(); requestAnimation
 requestAnimationFrame(loop);
 
 // ── Clear ─────────────────────────────────────────────────────────────────────
-function clear(method) {
+function clear() {
   segments.length = 0;
   sparkles.length = 0;
   tc.clearRect(0, 0, window.innerWidth, window.innerHeight);
@@ -233,8 +182,6 @@ function clear(method) {
   lastSettledCount = 0;
   bgHue = 0;
   bg.style.background = 'hsl(0,60%,94%)';
-  clearCount++;
-  track('canvas_cleared', { method });
 }
 
 // ── Pointer Events (mouse, touch, and stylus in one unified model) ────────────
@@ -262,7 +209,7 @@ trailCanvas.addEventListener('pointerup', e => {
   endFinger(e.pointerId);
   if (wasTap) {
     const now = Date.now();
-    if (now - lastTap < 350) clear(e.pointerType === 'mouse' ? 'double_click' : 'double_tap');
+    if (now - lastTap < 350) clear();
     lastTap = now;
   }
 });
@@ -282,7 +229,7 @@ function initShake() {
     lastAx = a.x; lastAy = a.y; lastAz = a.z;
     if (delta > 40 && Date.now() - lastShake > 1000) {
       lastShake = Date.now();
-      clear('shake');
+      clear();
     }
   });
 }
