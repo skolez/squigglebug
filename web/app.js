@@ -172,50 +172,24 @@ function endFinger(id) {
 function loop() { redrawTrails(); redrawSparkles(); updateBg(); requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
 
-// ── Clear ─────────────────────────────────────────────────────────────────────
-function clear() {
-  segments.length = 0;
-  sparkles.length = 0;
-  tc.clearRect(0, 0, window.innerWidth, window.innerHeight);
-  sc.clearRect(0, 0, window.innerWidth, window.innerHeight);
-  stc.clearRect(0, 0, window.innerWidth, window.innerHeight);
-  lastSettledCount = 0;
-  bgHue = 0;
-  bg.style.background = 'hsl(0,60%,94%)';
-}
-
 // ── Pointer Events (mouse, touch, and stylus in one unified model) ────────────
 // setPointerCapture keeps move/up events firing even if the pointer leaves the canvas.
-// Double-tap / double-click detection is handled here — no separate dblclick needed.
-const pointerMoved = new Map();
-let lastTap = 0;
 
 trailCanvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   trailCanvas.setPointerCapture(e.pointerId);
-  pointerMoved.set(e.pointerId, false);
   startFinger(e.pointerId, e.clientX, e.clientY);
 });
 
 trailCanvas.addEventListener('pointermove', e => {
-  if (!pointerMoved.has(e.pointerId)) return;
-  pointerMoved.set(e.pointerId, true);
   moveFinger(e.pointerId, e.clientX, e.clientY);
 });
 
 trailCanvas.addEventListener('pointerup', e => {
-  const wasTap = pointerMoved.get(e.pointerId) === false;
-  pointerMoved.delete(e.pointerId);
   endFinger(e.pointerId);
-  if (wasTap) {
-    const now = Date.now();
-    if (now - lastTap < 350) clear();
-    lastTap = now;
-  }
 });
 
 trailCanvas.addEventListener('pointercancel', e => {
-  pointerMoved.delete(e.pointerId);
   endFinger(e.pointerId);
 });
 
