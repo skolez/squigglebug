@@ -12,6 +12,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      HAS_SIGNING_SECRETS: ${{ secrets.KEYSTORE_BASE64 != '' }}
+
     steps:
       # ── Source ───────────────────────────────────────────────────────────────
       - name: Checkout
@@ -47,11 +50,11 @@ jobs:
 
       # ── Signed release AAB (only when signing secrets are configured) ────────
       - name: Decode keystore
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: env.HAS_SIGNING_SECRETS == 'true'
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/keystore.jks
 
       - name: Build signed release AAB
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: env.HAS_SIGNING_SECRETS == 'true'
         working-directory: android
         run: |
           ./gradlew bundleRelease --no-daemon \
@@ -73,7 +76,7 @@ jobs:
           retention-days: 14
 
       - name: Upload signed release AAB
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        if: env.HAS_SIGNING_SECRETS == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: squigglebug-release-aab
