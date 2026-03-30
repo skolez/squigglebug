@@ -219,34 +219,6 @@ trailCanvas.addEventListener('pointercancel', e => {
   endFinger(e.pointerId);
 });
 
-// ── Shake to clear ────────────────────────────────────────────────────────────
-function initShake() {
-  let lastAx = 0, lastAy = 0, lastAz = 0, lastShake = 0;
-  window.addEventListener('devicemotion', e => {
-    const a = e.accelerationIncludingGravity;
-    if (!a) return;
-    const delta = Math.abs(a.x - lastAx) + Math.abs(a.y - lastAy) + Math.abs(a.z - lastAz);
-    lastAx = a.x; lastAy = a.y; lastAz = a.z;
-    if (delta > 40 && Date.now() - lastShake > 1000) {
-      lastShake = Date.now();
-      clear();
-    }
-  });
-}
-
-// iOS 13+ requires DeviceMotionEvent.requestPermission() from a user gesture.
-// pointerdown covers both touch and mouse — silently falls back on Android / desktop.
-trailCanvas.addEventListener('pointerdown', function onFirstInteraction() {
-  if (typeof DeviceMotionEvent !== 'undefined' &&
-      typeof DeviceMotionEvent.requestPermission === 'function') {
-    DeviceMotionEvent.requestPermission()
-      .then(state => { if (state === 'granted') initShake(); })
-      .catch(() => {}); // user denied — shake won't work, drawing still does
-  } else {
-    initShake(); // Android, desktop, or pre-iOS-13
-  }
-}, { once: true });
-
 window.addEventListener('resize', resize);
 resize();
 
