@@ -46,7 +46,10 @@ jobs:
 
       - name: Build debug APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon
+        run: |
+          ./gradlew assembleDebug --no-daemon \
+            -Pandroid.injected.version.code=${{ github.run_number }} \
+            -Pandroid.injected.version.name=1.0.0
 
       # ── Signed release AAB (only when signing secrets are configured) ────────
       - name: Decode keystore
@@ -58,6 +61,8 @@ jobs:
         working-directory: android
         run: |
           ./gradlew bundleRelease --no-daemon \
+            -Pandroid.injected.version.code=${{ github.run_number }} \
+            -Pandroid.injected.version.name=1.0.0 \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/android/keystore.jks \
             -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
