@@ -122,11 +122,38 @@ function redrawSparkles() {
 // ── Background tint ───────────────────────────────────────────────────────────
 let bgHue = 0;
 function updateBg() {
+  if (document.body.classList.contains('dark')) {
+    bg.style.background = '';
+    return;
+  }
   let diff = hue - bgHue;
   if (diff >  180) diff -= 360;
   if (diff < -180) diff += 360;
   bgHue = (bgHue + diff * 0.02 + 360) % 360;
   bg.style.background = `hsl(${bgHue},60%,94%)`;
+}
+
+// ── Dark mode (hidden 5-tap trigger in top-left corner) ───────────────────────
+const DARK_KEY        = 'squigglebug:dark';
+const TAP_CORNER_PX   = 80;
+const TAP_WINDOW_MS   = 1500;
+const TAP_COUNT       = 5;
+const tapTimes = [];
+
+if (localStorage.getItem(DARK_KEY) === '1') {
+  document.body.classList.add('dark');
+}
+
+function registerCornerTap(x, y) {
+  if (x > TAP_CORNER_PX || y > TAP_CORNER_PX) { tapTimes.length = 0; return; }
+  const now = Date.now();
+  while (tapTimes.length && now - tapTimes[0] > TAP_WINDOW_MS) tapTimes.shift();
+  tapTimes.push(now);
+  if (tapTimes.length >= TAP_COUNT) {
+    tapTimes.length = 0;
+    const dark = document.body.classList.toggle('dark');
+    localStorage.setItem(DARK_KEY, dark ? '1' : '0');
+  }
 }
 
 // ── Input ─────────────────────────────────────────────────────────────────────
@@ -178,6 +205,7 @@ requestAnimationFrame(loop);
 trailCanvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   trailCanvas.setPointerCapture(e.pointerId);
+  registerCornerTap(e.clientX, e.clientY);
   startFinger(e.pointerId, e.clientX, e.clientY);
 });
 
